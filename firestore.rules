@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // All data is private to the user (teacher)
+    // We assume students/attendance are partitioned by a 'teacherId' or simply only accessible to the owner.
+    // For this app, let's assume we use a flat structure but each document has an 'ownerId'.
+    // Or even better, let's keep it simple: any signed-in user can manage their own class.
+    // To make it truly private, we'd need a teacherId field.
+
+    function isValidStudent(data) {
+      return data.keys().hasAll(['name', 'studentNumber', 'ownerId', 'createdAt']) &&
+             data.keys().size() == 4 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.studentNumber is string && data.studentNumber.size() > 0 && data.studentNumber.size() <= 20 &&
+             data.ownerId == request.auth.uid &&
+             data.createdAt == request.time;
+    }
+
+    function isValidSession(data) {
+      return data.keys().hasAll(['name', 'date', 'ownerId', 'createdAt']) &&
+             data.keys().size() == 4 &&
+             data.name is string && data.name.size() > 0 &&
+             data.ownerId == request.auth.uid &&
+             data.createdAt == request.time;
+    }
+
+    function isValidAttendance(data) {
+      return data.keys().hasAll(['sessionId', 'studentId', 'status', 'ownerId', 'updatedAt']) &&
+             data.keys().size() == 5 &&
+             data.sessionId is string &&
+             data.studentId is string &&
+             data.status in ['present', 'absent'] &&
+             data.ownerId == request.auth.uid &&
+             data.updatedAt == request.time;
+    }
+
+    match /students/{studentId} {
+      allow get: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidStudent(incoming());
+      allow update: if isSignedIn() && 
+                    existing().ownerId == request.auth.uid && 
+                    isValidStudent(incoming()) &&
+                    incoming().ownerId == existing().ownerId &&
+                    incoming().createdAt == existing().createdAt;
+      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+    }
+
+    match /sessions/{sessionId} {
+      allow get, list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidSession(incoming());
+      allow update, delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+    }
+
+    match /attendance/{recordId} {
+      allow get, list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidAttendance(incoming());
+      allow update: if isSignedIn() && 
+                    existing().ownerId == request.auth.uid && 
+                    isValidAttendance(incoming()) &&
+                    incoming().ownerId == existing().ownerId &&
+                    incoming().sessionId == existing().sessionId &&
+                    incoming().studentId == existing().studentId;
+      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+    }
+  }
+}

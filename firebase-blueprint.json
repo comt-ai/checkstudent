@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "Information about a student in the class",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Student's name" },
+        "studentNumber": { "type": "string", "description": "Student's identification number in class" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "studentNumber"]
+    },
+    "AttendanceSession": {
+      "title": "Attendance Session",
+      "description": "A specific instance of checking attendance (e.g., 'Morning Bus')",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the check session" },
+        "date": { "type": "string", "format": "date" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "date", "ownerId"]
+    },
+    "AttendanceRecord": {
+      "title": "Attendance Record",
+      "description": "Attendance status for a student in a specific session",
+      "type": "object",
+      "properties": {
+        "sessionId": { "type": "string", "description": "Reference to the AttendanceSession ID" },
+        "studentId": { "type": "string", "description": "Reference to the student ID" },
+        "status": { "type": "string", "enum": ["present", "absent"], "description": "Attendance status" },
+        "ownerId": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sessionId", "studentId", "status", "ownerId"]
+    }
+  },
+  "firestore": {
+    "students": {
+      "schema": "Student",
+      "description": "Collection of students"
+    },
+    "sessions": {
+      "schema": "AttendanceSession",
+      "description": "Collection of individual check sessions"
+    },
+    "attendance": {
+      "schema": "AttendanceRecord",
+      "description": "Collection of records linked to sessions and students"
+    }
+  }
+}

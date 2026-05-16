@@ -1,0 +1,6 @@
+{
+  "name": "체험학습 인원 점검기",
+  "description": "스마트폰에서 학생들의 인원을 한눈에 확인하고 체크할 수 있는 간편 도구입니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
