@@ -77,7 +77,7 @@ export default function App() {
       {/* 상단 헤더 */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-black text-black tracking-tight">체험학습 점검</h1>
+          <h1 className="text-xl font-black text-black tracking-tight">학생 인원 점검</h1>
           <span className="bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
             {checkedIds.size} / {students.length}
           </span>
@@ -231,6 +231,10 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* 저작권 표시 푸터 */}
+      <footer className="p-4 text-center">
+        <p className="text-[10px] text-gray-300 font-mono">ⓒ 2026 Jeong, S</p>
+      </footer>
     </div>
   );
 }
